@@ -82,6 +82,77 @@
             color: #dc3545;
             font-weight: bold;
         }
+        .warning {
+            color: #ffc107;
+            font-weight: bold;
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        @media (max-width: 600px) {
+            .radio-group {
+                gap: 15px;
+            }
+            .radio-option {
+                margin-bottom: 5px;
+            }
+            .utility-buttons {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .utility-button {
+                width: 100%;
+            }
+            .number-control {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            .number-control input {
+                width: 100%;
+                margin-left: 0;
+            }
+        }
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+        .radio-option input[type="radio"] {
+            width: auto;
+            margin: 0;
+        }
+        .radio-option label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: normal;
+        }
+        .utility-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .utility-button {
+            padding: 8px 16px;
+            font-size: 14px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: auto;
+        }
+        .utility-button:hover {
+            background: #5a6268;
+        }
     </style>
 </head>
 <body>
@@ -105,26 +176,46 @@
         </div>
         
         <div class="form-group">
-            <label for="allowDuplicates">Allow Duplications in Results?</label>
-            <select id="allowDuplicates" onchange="toggleDuplicationControl()">
-                <option value="no">No</option>
-                <option value="yes">Yes</option>
-            </select>
+            <label>Allow Duplications in Results?</label>
+            <div class="radio-group">
+                <div class="radio-option">
+                    <input type="radio" id="allowDuplicatesNo" name="allowDuplicates" value="no" checked onchange="toggleDuplicationControl()">
+                    <label for="allowDuplicatesNo">No</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="allowDuplicatesYes" name="allowDuplicates" value="yes" onchange="toggleDuplicationControl()">
+                    <label for="allowDuplicatesYes">Yes</label>
+                </div>
+            </div>
         </div>
         
         <div id="duplication-control">
             <p><strong>Specify how many times each number can appear:</strong></p>
+            <div id="range-warning" style="display: none;"></div>
+            <div class="utility-buttons">
+                <button class="utility-button" onclick="fillAllRandomly()">Fill All</button>
+                <button class="utility-button" onclick="clearAll()">Clear All</button>
+            </div>
             <div id="number-controls"></div>
             <p><small>Total must equal <span id="totalRequired">5</span></small></p>
         </div>
         
         <div class="form-group">
-            <label for="sortResults">Sort the Results?</label>
-            <select id="sortResults">
-                <option value="no">No</option>
-                <option value="ascend">Ascend</option>
-                <option value="descend">Descend</option>
-            </select>
+            <label>Sort the Results?</label>
+            <div class="radio-group">
+                <div class="radio-option">
+                    <input type="radio" id="sortNo" name="sortResults" value="no" checked>
+                    <label for="sortNo">No</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="sortAscend" name="sortResults" value="ascend">
+                    <label for="sortAscend">Ascending</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="sortDescend" name="sortResults" value="descend">
+                    <label for="sortDescend">Descending</label>
+                </div>
+            </div>
         </div>
         
         <button onclick="generateRandomNumbers()">Generate Numbers</button>
@@ -134,38 +225,81 @@
 
     <script>
         function updateNumberCountDisplay() {
-            const count = document.getElementById('numberCount').value;
+            const countInput = document.getElementById('numberCount');
+            let count = parseFloat(countInput.value);
+            
+            // Force to integer if decimal entered
+            if (count !== Math.floor(count)) {
+                count = Math.floor(count);
+                countInput.value = count;
+            }
+            
+            // Prevent negative numbers
+            if (count < 1) {
+                count = 1;
+                countInput.value = count;
+            }
+            
             document.getElementById('numberCountDisplay').textContent = count;
             document.getElementById('totalRequired').textContent = count;
             
             updateDuplicationControlState();
             
-            if (document.getElementById('allowDuplicates').value === 'yes') {
+            if (document.querySelector('input[name="allowDuplicates"]:checked').value === 'yes') {
                 generateDuplicationControls();
             }
         }
 
         function onLimitChange() {
-            if (document.getElementById('allowDuplicates').value === 'yes') {
+            const lowerInput = document.getElementById('lowerLimit');
+            const upperInput = document.getElementById('upperLimit');
+            
+            let lowerValue = parseFloat(lowerInput.value);
+            let upperValue = parseFloat(upperInput.value);
+            
+            // Force to integer if decimal entered
+            if (lowerValue !== Math.floor(lowerValue)) {
+                lowerValue = Math.floor(lowerValue);
+                lowerInput.value = lowerValue;
+            }
+            
+            if (upperValue !== Math.floor(upperValue)) {
+                upperValue = Math.floor(upperValue);
+                upperInput.value = upperValue;
+            }
+            
+            // Prevent negative numbers
+            if (lowerValue < 0) {
+                lowerValue = 0;
+                lowerInput.value = lowerValue;
+            }
+            
+            if (upperValue < 1) {
+                upperValue = 1;
+                upperInput.value = upperValue;
+            }
+            
+            if (document.querySelector('input[name="allowDuplicates"]:checked').value === 'yes') {
                 generateDuplicationControls();
             }
         }
 
         function updateDuplicationControlState() {
             const count = parseInt(document.getElementById('numberCount').value);
-            const allowDuplicatesSelect = document.getElementById('allowDuplicates');
+            const allowDuplicatesNo = document.getElementById('allowDuplicatesNo');
+            const allowDuplicatesYes = document.getElementById('allowDuplicatesYes');
             
             if (count === 1) {
-                allowDuplicatesSelect.value = 'no';
-                allowDuplicatesSelect.disabled = true;
+                allowDuplicatesNo.checked = true;
+                allowDuplicatesYes.disabled = true;
                 document.getElementById('duplication-control').style.display = 'none';
             } else {
-                allowDuplicatesSelect.disabled = false;
+                allowDuplicatesYes.disabled = false;
             }
         }
 
         function toggleDuplicationControl() {
-            const allowDuplicates = document.getElementById('allowDuplicates').value;
+            const allowDuplicates = document.querySelector('input[name="allowDuplicates"]:checked').value;
             const duplicationControl = document.getElementById('duplication-control');
             
             if (allowDuplicates === 'yes') {
@@ -181,10 +315,21 @@
             const max = parseInt(document.getElementById('upperLimit').value);
             const count = parseInt(document.getElementById('numberCount').value);
             const controlsContainer = document.getElementById('number-controls');
+            const warningContainer = document.getElementById('range-warning');
             
             if (isNaN(min) || isNaN(max) || min >= max) {
                 controlsContainer.innerHTML = '<p class="error">Please set valid Lower and Upper limits first.</p>';
                 return;
+            }
+
+            const rangeSize = max - min + 1;
+            
+            // Show warning if range > 200
+            if (rangeSize > 200) {
+                warningContainer.innerHTML = '<p class="warning">⚠️ Large range detected! Ranges over 200 numbers may cause performance issues. Consider using a smaller range for better performance.</p>';
+                warningContainer.style.display = 'block';
+            } else {
+                warningContainer.style.display = 'none';
             }
 
             controlsContainer.innerHTML = '';
@@ -208,10 +353,26 @@
             const max = parseInt(document.getElementById('upperLimit').value);
             
             let currentTotal = 0;
+            let numbersWithZero = [];
+            
             for (let i = min; i <= max; i++) {
                 const input = document.getElementById(`count-${i}`);
                 if (input) {
-                    currentTotal += parseInt(input.value) || 0;
+                    const value = parseInt(input.value) || 0;
+                    currentTotal += value;
+                    if (value === 0) {
+                        numbersWithZero.push(i);
+                    }
+                }
+            }
+            
+            // Auto-populate if exactly one number has frequency 0
+            if (numbersWithZero.length === 1 && currentTotal < totalRequired) {
+                const remainingCount = totalRequired - currentTotal;
+                const lastNumberInput = document.getElementById(`count-${numbersWithZero[0]}`);
+                if (lastNumberInput && remainingCount > 0) {
+                    lastNumberInput.value = remainingCount;
+                    currentTotal += remainingCount;
                 }
             }
             
@@ -229,12 +390,12 @@
             const min = parseInt(document.getElementById('lowerLimit').value);
             const max = parseInt(document.getElementById('upperLimit').value);
             const count = parseInt(document.getElementById('numberCount').value);
-            const allowDuplicates = document.getElementById('allowDuplicates').value;
-            const sortOption = document.getElementById('sortResults').value;
+            const allowDuplicates = document.querySelector('input[name="allowDuplicates"]:checked').value;
+            const sortOption = document.querySelector('input[name="sortResults"]:checked').value;
             const output = document.getElementById('output');
 
             if (isNaN(min) || isNaN(max) || isNaN(count) || min >= max || count <= 0) {
-                output.innerHTML = '<p class="error">Invalid input! Please enter valid numbers where Lower Limit < Upper Limit and count > 0.</p>';
+                output.innerHTML = '<p class="error">Invalid input! Please enter valid integers where Lower Limit < Upper Limit and count > 0.</p>';
                 return;
             }
 
@@ -292,7 +453,63 @@
                 randomNumbers.sort((a, b) => b - a);
             }
 
-            output.innerHTML = `<strong>Generated Numbers:</strong><br>${randomNumbers.join(', ')}`;
+            output.innerHTML = `<strong>Generated Numbers:</strong><br>${randomNumbers.join('<br>')}`;
+        }
+
+        function fillAllRandomly() {
+            const min = parseInt(document.getElementById('lowerLimit').value);
+            const max = parseInt(document.getElementById('upperLimit').value);
+            const totalRequired = parseInt(document.getElementById('numberCount').value);
+            
+            if (isNaN(min) || isNaN(max) || isNaN(totalRequired) || min >= max) {
+                return;
+            }
+            
+            // Clear all first
+            for (let i = min; i <= max; i++) {
+                const input = document.getElementById(`count-${i}`);
+                if (input) {
+                    input.value = '0';
+                }
+            }
+            
+            // Randomly distribute the total
+            let remainingTotal = totalRequired;
+            const numbers = [];
+            for (let i = min; i <= max; i++) {
+                numbers.push(i);
+            }
+            
+            while (remainingTotal > 0) {
+                const randomIndex = Math.floor(Math.random() * numbers.length);
+                const randomNumber = numbers[randomIndex];
+                const input = document.getElementById(`count-${randomNumber}`);
+                if (input) {
+                    const currentValue = parseInt(input.value) || 0;
+                    input.value = currentValue + 1;
+                    remainingTotal--;
+                }
+            }
+            
+            validateDuplicationTotal();
+        }
+
+        function clearAll() {
+            const min = parseInt(document.getElementById('lowerLimit').value);
+            const max = parseInt(document.getElementById('upperLimit').value);
+            
+            if (isNaN(min) || isNaN(max) || min >= max) {
+                return;
+            }
+            
+            for (let i = min; i <= max; i++) {
+                const input = document.getElementById(`count-${i}`);
+                if (input) {
+                    input.value = '0';
+                }
+            }
+            
+            validateDuplicationTotal();
         }
     </script>
 
