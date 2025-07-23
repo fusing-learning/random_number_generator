@@ -26,6 +26,7 @@ A web-based random number generator with advanced features including duplication
 - Mobile-responsive layout
 - Real-time validation feedback
 - Vertical results display for better readability
+- Support light & dark themes
 
 ## How to Use
 
