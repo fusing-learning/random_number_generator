@@ -261,6 +261,25 @@
         /* Icon visibility for dark mode */
         body.dark-mode .theme-switch-wrapper .sun-icon { opacity: 0.5; }
         body.dark-mode .theme-switch-wrapper .moon-icon { opacity: 1; }
+
+        .timestamp-input {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .timestamp-input input {
+            width: 60px;
+            text-align: center;
+        }
+        .timestamp-separator {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        @media (max-width: 600px) {
+            .timestamp-input input {
+                width: 50px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -274,9 +293,25 @@
         <span class="theme-icon moon-icon">🌙</span>
     </div>
 
-    <h1>Random Number Generator</h1>
-    
+    <h1>Random Generator</h1>
+
     <div class="form-container">
+        <div class="form-group">
+            <label>Mode:</label>
+            <div class="radio-group">
+                <div class="radio-option">
+                    <input type="radio" id="modeNumbers" name="mode" value="numbers" checked onchange="toggleMode()">
+                    <label for="modeNumbers">Numbers</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="modeTimestamps" name="mode" value="timestamps" onchange="toggleMode()">
+                    <label for="modeTimestamps">Timestamps</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-container" id="numbers-form">
         <div class="form-group">
             <label for="lowerLimit">Lower Limit:</label>
             <input type="number" id="lowerLimit" value="1" min="0" oninput="onLimitChange()">
@@ -336,6 +371,33 @@
         </div>
         
         <button onclick="generateRandomNumbers()">Generate Numbers</button>
+    </div>
+
+    <div class="form-container" id="timestamps-form" style="display: none;">
+        <div class="form-group">
+            <label>Lower Timestamp:</label>
+            <div class="timestamp-input">
+                <input type="number" id="lowerMinutes" value="0" min="0" placeholder="MM">
+                <span class="timestamp-separator">:</span>
+                <input type="number" id="lowerSeconds" value="0" min="0" max="59" placeholder="SS">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Upper Timestamp:</label>
+            <div class="timestamp-input">
+                <input type="number" id="upperMinutes" value="1" min="0" placeholder="MM">
+                <span class="timestamp-separator">:</span>
+                <input type="number" id="upperSeconds" value="0" min="0" max="59" placeholder="SS">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="timestampCount">Generate <span id="timestampCountDisplay">1</span> timestamps:</label>
+            <input type="number" id="timestampCount" value="1" min="1" oninput="updateTimestampCountDisplay()">
+        </div>
+
+        <button onclick="generateRandomTimestamps()">Generate Timestamps</button>
     </div>
 
     <div id="output"></div>
@@ -656,6 +718,107 @@
             }
             
             validateDuplicationTotal();
+        }
+
+        function toggleMode() {
+            const mode = document.querySelector('input[name="mode"]:checked').value;
+            const numbersForm = document.getElementById('numbers-form');
+            const timestampsForm = document.getElementById('timestamps-form');
+            const output = document.getElementById('output');
+
+            if (mode === 'numbers') {
+                numbersForm.style.display = 'block';
+                timestampsForm.style.display = 'none';
+            } else {
+                numbersForm.style.display = 'none';
+                timestampsForm.style.display = 'block';
+            }
+
+            output.innerHTML = '';
+        }
+
+        function updateTimestampCountDisplay() {
+            const countInput = document.getElementById('timestampCount');
+            let count = parseFloat(countInput.value);
+
+            if (count !== Math.floor(count)) {
+                count = Math.floor(count);
+                countInput.value = count;
+            }
+
+            if (count < 1) {
+                count = 1;
+                countInput.value = count;
+            }
+
+            document.getElementById('timestampCountDisplay').textContent = count;
+        }
+
+        function parseTimestampFromInputs(minutesId, secondsId) {
+            const minutes = parseInt(document.getElementById(minutesId).value);
+            const seconds = parseInt(document.getElementById(secondsId).value);
+
+            if (isNaN(minutes) || isNaN(seconds) || minutes < 0 || seconds < 0 || seconds >= 60) {
+                return null;
+            }
+
+            return minutes * 60 + seconds;
+        }
+
+        function formatTimestamp(totalSeconds) {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function generateRandomTimestamps() {
+            const count = parseInt(document.getElementById('timestampCount').value);
+            const output = document.getElementById('output');
+
+            const lowerSeconds = parseTimestampFromInputs('lowerMinutes', 'lowerSeconds');
+            const upperSeconds = parseTimestampFromInputs('upperMinutes', 'upperSeconds');
+
+            if (lowerSeconds === null) {
+                output.innerHTML = '<p class="error">Invalid Lower Timestamp! Minutes must be ≥ 0 and seconds must be 0-59.</p>';
+                return;
+            }
+
+            if (upperSeconds === null) {
+                output.innerHTML = '<p class="error">Invalid Upper Timestamp! Minutes must be ≥ 0 and seconds must be 0-59.</p>';
+                return;
+            }
+
+            if (lowerSeconds >= upperSeconds) {
+                output.innerHTML = '<p class="error">Lower Timestamp must be less than Upper Timestamp.</p>';
+                return;
+            }
+
+            if (isNaN(count) || count <= 0) {
+                output.innerHTML = '<p class="error">Invalid count! Please enter a positive number.</p>';
+                return;
+            }
+
+            const availableTimestamps = upperSeconds - lowerSeconds + 1;
+            if (count > availableTimestamps) {
+                const lowerFormatted = formatTimestamp(lowerSeconds);
+                const upperFormatted = formatTimestamp(upperSeconds);
+                output.innerHTML = `<p class="error">Cannot generate ${count} unique timestamps from range ${lowerFormatted}-${upperFormatted}. Maximum unique timestamps available: ${availableTimestamps}</p>`;
+                return;
+            }
+
+            const availablePool = [];
+            for (let i = lowerSeconds; i <= upperSeconds; i++) {
+                availablePool.push(i);
+            }
+
+            const randomTimestamps = [];
+            for (let i = 0; i < count; i++) {
+                const randomIndex = Math.floor(Math.random() * availablePool.length);
+                randomTimestamps.push(availablePool.splice(randomIndex, 1)[0]);
+            }
+
+            const formattedTimestamps = randomTimestamps.map(formatTimestamp);
+            output.innerHTML = `<strong>Generated Timestamps:</strong><br>${formattedTimestamps.join('<br>')}`;
         }
     </script>
 
