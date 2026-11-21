@@ -2,6 +2,8 @@
 
 A web-based random number generator with advanced features including duplication control, sorting options, and mobile-responsive design.
 
+**[Open the Random Generator in your browser](https://fusing-learning.github.io/random_number_generator/random_number_generator.html)**. No download required.
+
 ## Features
 
 ### Basic Generation
