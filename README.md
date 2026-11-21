@@ -1,4 +1,4 @@
-# Random Generator
+# Random Number Generator
 
 A web-based random number generator with advanced features including duplication control, sorting options, and mobile-responsive design.
 
@@ -16,10 +16,6 @@ A web-based random number generator with advanced features including duplication
 - Utility buttons: "Fill All" (random distribution) and "Clear All" for quick setup
 - Range limit warning: alerts when range exceeds 200 numbers (soft limit)
 
-### Timestamp Generation
-- Set start and end times in minutes and seconds
-- Generate unique timestamps in random order at one-second resolution
-
 ### Sorting Options
 - No sorting (random order)
 - Ascending order
@@ -29,14 +25,10 @@ A web-based random number generator with advanced features including duplication
 - Clean, intuitive design with radio button controls
 - Mobile-responsive layout
 - Real-time validation feedback
-- Results appear beside the controls on desktop and below them on mobile
+- Vertical results display for better readability
 - Support light & dark themes
 
 ## How to Use
-
-In **Timestamps** mode, enter a start and end time, set the count, and click **Generate Timestamps**.
-
-In **Numbers** mode:
 
 1. **Set Range**: Enter your desired lower and upper limits
 2. **Set Count**: Specify how many numbers to generate

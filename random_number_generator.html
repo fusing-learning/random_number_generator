@@ -3,406 +3,404 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Random Generator</title>
+    <title>Random Number Generator</title>
     <style>
-        :root {
-            font-family: system-ui, sans-serif;
-            font-synthesis: none;
-            line-height: 1.5;
-            color-scheme: light;
-        }
-
-        * { box-sizing: border-box; }
-
         body {
-            --page: #f1f4f8;
-            --surface: #fff;
-            --inset: #eef3fa;
-            --text: #17253a;
-            --muted: #4e6078;
-            --line: #ccd6e3;
-            --input-line: #8292aa;
-            --accent: #175ac0;
-            --accent-hover: #10499e;
-            --selected: #dceaff;
-            --error: #a52532;
-            --success: #236137;
-            --warning: #754700;
-            --warning-bg: #fff1d6;
-            margin: 0;
-            color: var(--text);
-            background: var(--page);
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            transition: background-color 0.3s, color 0.3s;
         }
-
-        body.dark-mode {
-            color-scheme: dark;
-            --page: #121821;
-            --surface: #1b2431;
-            --inset: #222f40;
-            --text: #eff5ff;
-            --muted: #adc0d8;
-            --line: #3a4a60;
-            --input-line: #788da8;
-            --accent: #91bcff;
-            --accent-hover: #b0cfff;
-            --selected: #283f61;
-            --error: #ffabb2;
-            --success: #99dbab;
-            --warning: #ffdb91;
-            --warning-bg: #3e301a;
-        }
-
-        main {
-            width: min(100% - 32px, 960px);
-            margin: clamp(24px, 6vw, 80px) auto;
-        }
-
-        .page-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            margin-bottom: clamp(16px, 3vw, 32px);
-        }
-
-        h1 {
-            margin: 0;
-            font-size: clamp(1.6rem, 4.5vw, 3rem);
-            line-height: 1.08;
-            letter-spacing: -0.045em;
-            text-wrap: balance;
-        }
-
-        .theme-switch {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            min-height: 44px;
-            padding: 0 12px;
-            background: var(--surface);
-            border: 1px solid var(--input-line);
+        .form-container {
+            background: #f5f5f5;
+            padding: 20px;
             border-radius: 8px;
-            font-size: 0.875rem;
-            white-space: nowrap;
-            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background-color 0.3s;
         }
-
-        .workspace {
-            display: grid;
-            grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-            align-items: start;
-            gap: 16px;
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
         }
-
-        .panel {
-            min-width: 0;
-            background: var(--surface);
-            border: 1px solid var(--line);
-            border-radius: 16px;
-            padding: clamp(16px, 3vw, 28px);
-        }
-
-        .range-fields {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px;
-        }
-
-        .form-group { margin: 0 0 16px; min-width: 0; }
-        .mode-group { margin-bottom: 22px; }
-        fieldset { padding: 0; border: 0; }
-        legend { padding: 0; }
-        .field-label, legend {
+        label {
             display: block;
-            margin-bottom: 6px;
-            font-size: 0.875rem;
-            font-weight: 650;
+            margin-bottom: 5px;
+            font-weight: bold;
         }
-
-        input, button { font: inherit; }
-        input[type="radio"], input[type="checkbox"] {
-            accent-color: var(--accent);
-            margin: 0;
-        }
-
-        input[type="number"] {
+        input, select {
             width: 100%;
-            min-width: 0;
-            min-height: 44px;
-            padding: 8px 10px;
-            border: 1px solid var(--input-line);
-            border-radius: 8px;
-            background: var(--surface);
-            color: var(--text);
-            font-variant-numeric: tabular-nums;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
         }
-
-        :is(input, button):focus-visible {
-            outline: 2px solid var(--accent);
-            outline-offset: 2px;
-        }
-
         button {
-            min-height: 44px;
-            padding: 8px 14px;
-            border: 1px solid transparent;
-            border-radius: 8px;
-            font-weight: 650;
+            padding: 12px 24px;
+            font-size: 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
             cursor: pointer;
-        }
-
-        .generate {
             width: 100%;
-            color: var(--surface);
-            background: var(--accent);
+            transition: background-color 0.3s;
         }
-
-        .generate:hover { background: var(--accent-hover); }
-
-        .radio-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
+        button:hover {
+            background: #0056b3;
         }
-
-        .radio-option {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            min-height: 44px;
-            padding: 6px 9px;
-            border: 1px solid var(--input-line);
-            border-radius: 8px;
-            font-size: 0.875rem;
-            cursor: pointer;
-        }
-
-        .radio-option:has(:checked) {
-            background: var(--selected);
-            border-color: var(--accent);
-        }
-
-        .mode-group .radio-option { flex: 1; justify-content: center; }
-
         #duplication-control {
+            margin-top: 15px;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 4px;
             display: none;
-            margin-bottom: 16px;
-            padding: 12px;
-            border-radius: 8px;
-            background: var(--inset);
+            transition: background-color 0.3s;
         }
-
-        #duplication-control p { margin: 0 0 10px; }
-        #duplication-control p:last-child { margin: 10px 0 0; }
-        .utility-buttons { display: flex; gap: 8px; margin-bottom: 10px; }
-        .utility-button {
-            color: var(--text);
-            background: var(--surface);
-            border-color: var(--input-line);
-            font-size: 0.875rem;
-        }
-        .utility-button:hover { background: var(--selected); }
-
-        #number-controls {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(min(100%, 116px), 1fr));
-            gap: 8px;
-            max-height: 280px;
-            overflow: auto;
-            padding: 4px;
-        }
-
         .number-control {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            font-size: 0.875rem;
+            margin-bottom: 8px;
         }
-
-        .number-control label { overflow-wrap: anywhere; }
-        .number-control input { width: 66px; flex: none; }
-
-        .timestamp-input {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-            align-items: center;
-            gap: 4px;
+        .number-control label {
+            margin-right: 10px;
+            min-width: 60px;
+            margin-bottom: 0;
         }
-
-        .timestamp-input input { text-align: center; padding-inline: 4px; }
-        .timestamp-units { color: var(--muted); font-weight: 400; }
-
-        .results h2 { margin: 0 0 12px; font-size: 1.125rem; }
-        .result-empty { color: var(--muted); }
-        .result-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(min(100%, 85px), 1fr));
-            gap: 8px;
-            list-style: none;
-            padding: 0;
-            margin: 0;
+        .number-control input {
+            width: 80px;
+            margin-left: auto;
         }
-
-        .result-list li {
-            padding: 10px 8px;
-            border-radius: 8px;
-            color: var(--text);
-            background: var(--inset);
+        #output {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            min-height: 50px;
+            transition: background-color 0.3s;
+        }
+        h1 {
             text-align: center;
-            font: 650 clamp(1rem, 2.5vw, 1.625rem)/1.2 ui-monospace, monospace;
-            overflow-wrap: anywhere;
+            color: #333;
+            transition: color 0.3s;
         }
-
-        .error, .result-empty { margin: 0; text-wrap: pretty; }
-        .error, .total-invalid { color: var(--error); }
-        .total-valid { color: var(--success); }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
         .warning {
-            color: var(--warning);
-            background: var(--warning-bg);
-            padding: 8px;
-            border-radius: 8px;
+            color: #ffc107;
+            font-weight: bold;
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 4px;
             margin-bottom: 10px;
         }
-
-        @media (max-width: 680px) {
-            .workspace { grid-template-columns: minmax(0, 1fr); }
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        @media (max-width: 600px) {
+            .radio-group {
+                gap: 15px;
+            }
+            .radio-option {
+                margin-bottom: 5px;
+            }
+            .utility-buttons {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .utility-button {
+                width: 100%;
+            }
+            .number-control {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            .number-control input {
+                width: 100%;
+                margin-left: 0;
+            }
+        }
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+        .radio-option input[type="radio"] {
+            width: auto;
+            margin: 0;
+        }
+        .radio-option label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: normal;
+        }
+        .utility-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .utility-button {
+            padding: 8px 16px;
+            font-size: 14px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: auto;
+        }
+        .utility-button:hover {
+            background: #5a6268;
         }
 
-        @media (max-width: 360px) {
-            #timestamps-form .range-fields { grid-template-columns: minmax(0, 1fr); }
+        /* --- Theme Switch --- */
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px; /* Adds space between icons and toggle */
+            margin-bottom: 1rem;
+        }
+        .theme-icon {
+            font-size: 1.2rem;
+            transition: opacity 0.3s ease;
+        }
+        .theme-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        .theme-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #007bff;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* --- Dark Mode Styles --- */
+        body.dark-mode {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        body.dark-mode h1 {
+            color: #e0e0e0;
+        }
+        body.dark-mode .form-container {
+            background: #1e1e1e;
+            border: 1px solid #333;
+        }
+        body.dark-mode input,
+        body.dark-mode select {
+            background-color: #333;
+            color: #e0e0e0;
+            border: 1px solid #555;
+        }
+        body.dark-mode button {
+            background: #0056b3;
+        }
+        body.dark-mode button:hover {
+            background: #004494;
+        }
+        body.dark-mode #duplication-control {
+            background: #2a2a2a;
+        }
+        body.dark-mode #output {
+            background: #1e1e1e;
+            border: 1px solid #333;
+        }
+        body.dark-mode .warning {
+            color: #121212;
+            background: #ffc107;
+        }
+        body.dark-mode .utility-button {
+            background: #4f565c;
+        }
+        body.dark-mode .utility-button:hover {
+            background: #404549;
+        }
+        /* Icon visibility for light mode */
+        .theme-switch-wrapper .moon-icon { opacity: 0.5; }
+        .theme-switch-wrapper .sun-icon { opacity: 1; }
+
+        /* Icon visibility for dark mode */
+        body.dark-mode .theme-switch-wrapper .sun-icon { opacity: 0.5; }
+        body.dark-mode .theme-switch-wrapper .moon-icon { opacity: 1; }
+
+        .timestamp-input {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .timestamp-input input {
+            width: 60px;
+            text-align: center;
+        }
+        .timestamp-separator {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        @media (max-width: 600px) {
+            .timestamp-input input {
+                width: 50px;
+            }
         }
     </style>
 </head>
 <body>
 
-    <main>
-        <header class="page-header">
-            <h1>Random Generator</h1>
-            <label class="theme-switch">
-                <input type="checkbox" id="theme-toggle">
-                Dark mode
-            </label>
-        </header>
+    <div class="theme-switch-wrapper">
+        <span class="theme-icon sun-icon">☀️</span>
+        <label class="theme-switch" for="theme-toggle">
+            <input type="checkbox" id="theme-toggle" />
+            <span class="slider"></span>
+        </label>
+        <span class="theme-icon moon-icon">🌙</span>
+    </div>
 
-        <div class="workspace">
-            <section class="panel" aria-label="Generator settings">
-                <fieldset class="form-group mode-group">
-                    <legend>Mode</legend>
-                    <div class="radio-group">
-                        <label class="radio-option">
-                            <input type="radio" id="modeNumbers" name="mode" value="numbers" checked onchange="toggleMode()">
-                            Numbers
-                        </label>
-                        <label class="radio-option">
-                            <input type="radio" id="modeTimestamps" name="mode" value="timestamps" onchange="toggleMode()">
-                            Timestamps
-                        </label>
-                    </div>
-                </fieldset>
+    <h1>Random Generator</h1>
 
-                <div id="numbers-form">
-                    <div class="range-fields">
-                        <div class="form-group">
-                            <label class="field-label" for="lowerLimit">Minimum</label>
-                            <input type="number" id="lowerLimit" value="1" min="0" oninput="onLimitChange()">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="field-label" for="upperLimit">Maximum</label>
-                            <input type="number" id="upperLimit" value="100" min="1" oninput="onLimitChange()">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="field-label" for="numberCount">How many numbers?</label>
-                        <input type="number" id="numberCount" value="1" min="1" oninput="normalizeNumberCount()">
-                    </div>
-
-                    <fieldset class="form-group">
-                        <legend>Allow duplicates?</legend>
-                        <div class="radio-group">
-                            <label class="radio-option">
-                                <input type="radio" id="allowDuplicatesNo" name="allowDuplicates" value="no" checked onchange="toggleDuplicationControl()">
-                                No
-                            </label>
-                            <label class="radio-option">
-                                <input type="radio" id="allowDuplicatesYes" name="allowDuplicates" value="yes" onchange="toggleDuplicationControl()">
-                                Yes
-                            </label>
-                        </div>
-                    </fieldset>
-
-                    <div id="duplication-control">
-                        <p><strong>Specify how many times each number can appear:</strong></p>
-                        <div id="range-warning" style="display: none;"></div>
-                        <div class="utility-buttons">
-                            <button class="utility-button" onclick="fillAllRandomly()">Fill All</button>
-                            <button class="utility-button" onclick="clearAll()">Clear All</button>
-                        </div>
-                        <div id="number-controls"></div>
-                        <p><small>Total must equal <span id="totalRequired">5</span></small></p>
-                    </div>
-
-                    <fieldset class="form-group">
-                        <legend>Sort order</legend>
-                        <div class="radio-group">
-                            <label class="radio-option">
-                                <input type="radio" id="sortNo" name="sortResults" value="no" checked>
-                                Random
-                            </label>
-                            <label class="radio-option">
-                                <input type="radio" id="sortAscend" name="sortResults" value="ascend">
-                                Ascending
-                            </label>
-                            <label class="radio-option">
-                                <input type="radio" id="sortDescend" name="sortResults" value="descend">
-                                Descending
-                            </label>
-                        </div>
-                    </fieldset>
-
-                    <button class="generate" onclick="generateRandomNumbers()">Generate Numbers</button>
+    <div class="form-container">
+        <div class="form-group">
+            <label>Mode:</label>
+            <div class="radio-group">
+                <div class="radio-option">
+                    <input type="radio" id="modeNumbers" name="mode" value="numbers" checked onchange="toggleMode()">
+                    <label for="modeNumbers">Numbers</label>
                 </div>
-
-                <div id="timestamps-form" hidden>
-                    <div class="range-fields">
-                        <div class="form-group">
-                            <span class="field-label">Start <span class="timestamp-units">(min:sec)</span></span>
-                            <div class="timestamp-input">
-                                <input type="number" id="lowerMinutes" aria-label="Start minutes" value="0" min="0" placeholder="MM">
-                                <span class="timestamp-separator">:</span>
-                                <input type="number" id="lowerSeconds" aria-label="Start seconds" value="0" min="0" max="59" placeholder="SS">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <span class="field-label">End <span class="timestamp-units">(min:sec)</span></span>
-                            <div class="timestamp-input">
-                                <input type="number" id="upperMinutes" aria-label="End minutes" value="1" min="0" placeholder="MM">
-                                <span class="timestamp-separator">:</span>
-                                <input type="number" id="upperSeconds" aria-label="End seconds" value="0" min="0" max="59" placeholder="SS">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="field-label" for="timestampCount">How many timestamps?</label>
-                        <input type="number" id="timestampCount" value="1" min="1" oninput="normalizeTimestampCount()">
-                    </div>
-
-                    <button class="generate" onclick="generateRandomTimestamps()">Generate Timestamps</button>
+                <div class="radio-option">
+                    <input type="radio" id="modeTimestamps" name="mode" value="timestamps" onchange="toggleMode()">
+                    <label for="modeTimestamps">Timestamps</label>
                 </div>
-            </section>
-
-            <section class="panel results" aria-labelledby="results-heading">
-                <h2 id="results-heading">Results</h2>
-                <div id="output" aria-live="polite" aria-atomic="true">
-                    <p class="result-empty">Generated values will appear here.</p>
-                </div>
-            </section>
+            </div>
         </div>
-    </main>
+    </div>
+
+    <div class="form-container" id="numbers-form">
+        <div class="form-group">
+            <label for="lowerLimit">Lower Limit:</label>
+            <input type="number" id="lowerLimit" value="1" min="0" oninput="onLimitChange()">
+        </div>
+        
+        <div class="form-group">
+            <label for="upperLimit">Upper Limit:</label>
+            <input type="number" id="upperLimit" value="100" min="1" oninput="onLimitChange()">
+        </div>
+        
+        <div class="form-group">
+            <label for="numberCount">Generate <span id="numberCountDisplay">1</span> numbers:</label>
+            <input type="number" id="numberCount" value="1" min="1" oninput="updateNumberCountDisplay()">
+        </div>
+        
+        <div class="form-group">
+            <label>Allow Duplications in Results?</label>
+            <div class="radio-group">
+                <div class="radio-option">
+                    <input type="radio" id="allowDuplicatesNo" name="allowDuplicates" value="no" checked onchange="toggleDuplicationControl()">
+                    <label for="allowDuplicatesNo">No</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="allowDuplicatesYes" name="allowDuplicates" value="yes" onchange="toggleDuplicationControl()">
+                    <label for="allowDuplicatesYes">Yes</label>
+                </div>
+            </div>
+        </div>
+        
+        <div id="duplication-control">
+            <p><strong>Specify how many times each number can appear:</strong></p>
+            <div id="range-warning" style="display: none;"></div>
+            <div class="utility-buttons">
+                <button class="utility-button" onclick="fillAllRandomly()">Fill All</button>
+                <button class="utility-button" onclick="clearAll()">Clear All</button>
+            </div>
+            <div id="number-controls"></div>
+            <p><small>Total must equal <span id="totalRequired">5</span></small></p>
+        </div>
+        
+        <div class="form-group">
+            <label>Sort the Results?</label>
+            <div class="radio-group">
+                <div class="radio-option">
+                    <input type="radio" id="sortNo" name="sortResults" value="no" checked>
+                    <label for="sortNo">No</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="sortAscend" name="sortResults" value="ascend">
+                    <label for="sortAscend">Ascending</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="sortDescend" name="sortResults" value="descend">
+                    <label for="sortDescend">Descending</label>
+                </div>
+            </div>
+        </div>
+        
+        <button onclick="generateRandomNumbers()">Generate Numbers</button>
+    </div>
+
+    <div class="form-container" id="timestamps-form" style="display: none;">
+        <div class="form-group">
+            <label>Lower Timestamp:</label>
+            <div class="timestamp-input">
+                <input type="number" id="lowerMinutes" value="0" min="0" placeholder="MM">
+                <span class="timestamp-separator">:</span>
+                <input type="number" id="lowerSeconds" value="0" min="0" max="59" placeholder="SS">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Upper Timestamp:</label>
+            <div class="timestamp-input">
+                <input type="number" id="upperMinutes" value="1" min="0" placeholder="MM">
+                <span class="timestamp-separator">:</span>
+                <input type="number" id="upperSeconds" value="0" min="0" max="59" placeholder="SS">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="timestampCount">Generate <span id="timestampCountDisplay">1</span> timestamps:</label>
+            <input type="number" id="timestampCount" value="1" min="1" oninput="updateTimestampCountDisplay()">
+        </div>
+
+        <button onclick="generateRandomTimestamps()">Generate Timestamps</button>
+    </div>
+
+    <div id="output"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -437,12 +435,12 @@
             }
 
             // Initial calls to set up the generator state
-            normalizeNumberCount();
+            updateNumberCountDisplay();
             toggleDuplicationControl();
         });
 
 
-        function normalizeNumberCount() {
+        function updateNumberCountDisplay() {
             const countInput = document.getElementById('numberCount');
             let count = parseFloat(countInput.value);
             
@@ -456,6 +454,7 @@
                 countInput.value = count;
             }
             
+            document.getElementById('numberCountDisplay').textContent = count;
             document.getElementById('totalRequired').textContent = count;
             
             updateDuplicationControlState();
@@ -589,10 +588,10 @@
             
             const totalElement = document.getElementById('totalRequired');
             if (currentTotal === totalRequired) {
-                totalElement.className = 'total-valid';
+                totalElement.style.color = 'green';
                 totalElement.textContent = `${totalRequired} ✓`;
             } else {
-                totalElement.className = 'total-invalid';
+                totalElement.style.color = 'red';
                 totalElement.textContent = `${totalRequired} (currently: ${currentTotal})`;
             }
         }
@@ -606,7 +605,7 @@
             const output = document.getElementById('output');
 
             if (isNaN(min) || isNaN(max) || isNaN(count) || min >= max || count <= 0) {
-                output.innerHTML = '<p class="error">Invalid input! Please enter valid integers where the minimum is below the maximum and the count is positive.</p>';
+                output.innerHTML = '<p class="error">Invalid input! Please enter valid integers where Lower Limit < Upper Limit and count > 0.</p>';
                 return;
             }
 
@@ -664,7 +663,7 @@
                 randomNumbers.sort((a, b) => b - a);
             }
 
-            showResults(randomNumbers);
+            output.innerHTML = `<strong>Generated Numbers:</strong><br>${randomNumbers.join('<br>')}`;
         }
 
         function fillAllRandomly() {
@@ -721,31 +720,24 @@
             validateDuplicationTotal();
         }
 
-        function showResults(values) {
-            const output = document.getElementById('output');
-            const list = document.createElement('ul');
-            list.className = 'result-list';
-            list.setAttribute('role', 'list');
-            for (const value of values) {
-                const item = document.createElement('li');
-                item.textContent = value;
-                list.append(item);
-            }
-            output.replaceChildren(list);
-        }
-
         function toggleMode() {
             const mode = document.querySelector('input[name="mode"]:checked').value;
             const numbersForm = document.getElementById('numbers-form');
             const timestampsForm = document.getElementById('timestamps-form');
             const output = document.getElementById('output');
 
-            numbersForm.hidden = mode !== 'numbers';
-            timestampsForm.hidden = mode !== 'timestamps';
-            output.innerHTML = '<p class="result-empty">Generated values will appear here.</p>';
+            if (mode === 'numbers') {
+                numbersForm.style.display = 'block';
+                timestampsForm.style.display = 'none';
+            } else {
+                numbersForm.style.display = 'none';
+                timestampsForm.style.display = 'block';
+            }
+
+            output.innerHTML = '';
         }
 
-        function normalizeTimestampCount() {
+        function updateTimestampCountDisplay() {
             const countInput = document.getElementById('timestampCount');
             let count = parseFloat(countInput.value);
 
@@ -758,6 +750,8 @@
                 count = 1;
                 countInput.value = count;
             }
+
+            document.getElementById('timestampCountDisplay').textContent = count;
         }
 
         function parseTimestampFromInputs(minutesId, secondsId) {
@@ -824,7 +818,7 @@
             }
 
             const formattedTimestamps = randomTimestamps.map(formatTimestamp);
-            showResults(formattedTimestamps);
+            output.innerHTML = `<strong>Generated Timestamps:</strong><br>${formattedTimestamps.join('<br>')}`;
         }
     </script>
 
